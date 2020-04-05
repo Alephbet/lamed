@@ -1,4 +1,4 @@
-# Lamed
+# Lámed (לָמֶד)
 
 [![PyPI](https://img.shields.io/pypi/v/lamed.svg)](https://pypi.python.org/pypi/lamed)
 
