@@ -1,9 +1,9 @@
 import click
 import logging
 try:
-    from gimel import logger
-    from gimel.deploy import run, js_code_snippet, preflight_checks, dashboard_url
-    from gimel.config import config, config_filename, generate_config
+    from lamed import logger
+    from lamed.deploy import run, js_code_snippet, preflight_checks, dashboard_url
+    from lamed.config import config, config_filename, generate_config
 except ImportError:
     import logger
     from deploy import run, js_code_snippet, preflight_checks, dashboard_url

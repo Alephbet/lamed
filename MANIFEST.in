@@ -1,8 +1,8 @@
 include README.md
 include LICENSE
-include gimel/VERSION
-include gimel/config.json.template
-recursive-include gimel/vendor *
+include lamed/VERSION
+include lamed/config.json.template
+recursive-include lamed/vendor *
 
 exclude tox.ini
 exclude requirements.in

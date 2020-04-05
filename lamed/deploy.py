@@ -4,13 +4,13 @@ import os
 import redis
 from zipfile import ZipFile, ZipInfo, ZIP_DEFLATED
 try:
-    from gimel import logger
-    from gimel.gimel import _redis
-    from gimel.config import config
-    from gimel.aws_api import iam, apigateway, aws_lambda, region, check_aws_credentials
+    from lamed import logger
+    from lamed.lamed import _redis
+    from lamed.config import config
+    from lamed.aws_api import iam, apigateway, aws_lambda, region, check_aws_credentials
 except ImportError:
     import logger
-    from gimel import _redis
+    from lamed import _redis
     from config import config
     from aws_api import iam, apigateway, aws_lambda, region, check_aws_credentials
 
@@ -81,8 +81,8 @@ REQUEST_TEMPLATE = {'application/json':
 WIRING = [
     {
         "lambda": {
-            "FunctionName": "gimel-track",
-            "Handler": "gimel.track",
+            "FunctionName": "lamed-track",
+            "Handler": "lamed.track",
             "MemorySize": 128,
             "Timeout": 3
         },
@@ -103,8 +103,8 @@ WIRING = [
     },
     {
         "lambda": {
-            "FunctionName": "gimel-all-experiments",
-            "Handler": "gimel.all",
+            "FunctionName": "lamed-all-experiments",
+            "Handler": "lamed.all",
             "MemorySize": 128,
             "Timeout": 60
         },
@@ -122,8 +122,8 @@ WIRING = [
     },
     {
         "lambda": {
-            "FunctionName": "gimel-delete-experiment",
-            "Handler": "gimel.delete",
+            "FunctionName": "lamed-delete-experiment",
+            "Handler": "lamed.delete",
             "MemorySize": 128,
             "Timeout": 30
         },
@@ -145,19 +145,19 @@ WIRING = [
 def prepare_zip():
     from pkg_resources import resource_filename as resource
     from json import dumps
-    logger.info('creating/updating gimel.zip')
-    with ZipFile('gimel.zip', 'w', ZIP_DEFLATED) as zipf:
+    logger.info('creating/updating lamed.zip')
+    with ZipFile('lamed.zip', 'w', ZIP_DEFLATED) as zipf:
         info = ZipInfo('config.json')
         info.external_attr = 0o664 << 16
         zipf.writestr(info, dumps(config))
-        zipf.write(resource('gimel', 'config.py'), 'config.py')
-        zipf.write(resource('gimel', 'gimel.py'), 'gimel.py')
-        zipf.write(resource('gimel', 'logger.py'), 'logger.py')
-        for root, dirs, files in os.walk(resource('gimel', 'vendor')):
+        zipf.write(resource('lamed', 'config.py'), 'config.py')
+        zipf.write(resource('lamed', 'lamed.py'), 'lamed.py')
+        zipf.write(resource('lamed', 'logger.py'), 'logger.py')
+        for root, dirs, files in os.walk(resource('lamed', 'vendor')):
             for file in files:
                 real_file = os.path.join(root, file)
                 relative_file = os.path.relpath(real_file,
-                                                resource('gimel', ''))
+                                                resource('lamed', ''))
                 zipf.write(real_file, relative_file)
 
 
@@ -165,19 +165,19 @@ def role():
     new_role = False
     try:
         logger.info('finding role')
-        iam('get_role', RoleName='gimel')
+        iam('get_role', RoleName='lamed')
     except ClientError:
         logger.info('role not found. creating')
-        iam('create_role', RoleName='gimel',
+        iam('create_role', RoleName='lamed',
             AssumeRolePolicyDocument=ASSUMED_ROLE_POLICY)
         new_role = True
 
-    role_arn = iam('get_role', RoleName='gimel', query='Role.Arn')
+    role_arn = iam('get_role', RoleName='lamed', query='Role.Arn')
     logger.debug('role_arn={}'.format(role_arn))
 
     logger.info('updating role policy')
 
-    iam('put_role_policy', RoleName='gimel', PolicyName='gimel',
+    iam('put_role_policy', RoleName='lamed', PolicyName='lamed',
         PolicyDocument=POLICY)
 
     if new_role:
@@ -248,23 +248,23 @@ def rollback_lambda(name, alias=LIVE):
 
 
 def rollback(alias=LIVE):
-    for lambda_function in ('gimel-track', 'gimel-all-experiments'):
+    for lambda_function in ('lamed-track', 'lamed-all-experiments'):
         rollback_lambda(lambda_function, alias)
 
 
 def get_create_api():
     api_id = apigateway('get_rest_apis',
-                        query='items[?name==`gimel`] | [0].id')
+                        query='items[?name==`lamed`] | [0].id')
     if not api_id:
-        api_id = apigateway('create_rest_api', name='gimel',
-                            description='Gimel API', query='id')
+        api_id = apigateway('create_rest_api', name='lamed',
+                            description='lamed API', query='id')
     logger.debug("api_id={}".format(api_id))
     return api_id
 
 
 def get_api_key():
     return apigateway('get_api_keys',
-                      query='items[?name==`gimel`] | [0].id')
+                      query='items[?name==`lamed`] | [0].id')
 
 
 def api_key(api_id):
@@ -274,7 +274,7 @@ def api_key(api_id):
                    patchOperations=[{'op': 'add', 'path': '/stages',
                                      'value': '{}/prod'.format(api_id)}])
     else:
-        key = apigateway('create_api_key', name='gimel', enabled=True,
+        key = apigateway('create_api_key', name='lamed', enabled=True,
                          stageKeys=[{'restApiId': api_id, 'stageName': 'prod'}])
     return key
 
@@ -338,9 +338,9 @@ def cors(api_id, resource_id):
 def deploy_api(api_id):
     logger.info('deploying API')
     return apigateway('create_deployment', restApiId=api_id,
-                      description='gimel deployment',
+                      description='lamed deployment',
                       stageName='prod',
-                      stageDescription='gimel production',
+                      stageDescription='lamed production',
                       cacheClusterEnabled=False,
                       query='id')
 
@@ -386,7 +386,7 @@ def create_update_lambda(role_arn, wiring):
         function_arn = None
     if not function_arn:
         logger.info('creating new lambda function {}'.format(name))
-        with open('gimel.zip', 'rb') as zf:
+        with open('lamed.zip', 'rb') as zf:
             function_arn, version = aws_lambda('create_function',
                                                FunctionName=name,
                                                Runtime='python3.8',
@@ -406,7 +406,7 @@ def create_update_lambda(role_arn, wiring):
                    Handler=handler,
                    MemorySize=memory,
                    Timeout=timeout)
-        with open('gimel.zip', 'rb') as zf:
+        with open('lamed.zip', 'rb') as zf:
             function_arn, version = aws_lambda('update_function_code',
                                                FunctionName=name,
                                                Publish=True,
@@ -435,7 +435,7 @@ def js_code_snippet():
     logger.info(
         """
 
-        <!-- Copy and paste this snippet to start tracking with gimel -->
+        <!-- Copy and paste this snippet to start tracking with lamed -->
 
         <script src="https://unpkg.com/alephbet/dist/alephbet.min.js"></script>
         <script>
@@ -494,7 +494,7 @@ def preflight_checks():
     try:
         _redis().ping()
     except redis.exceptions.ConnectionError:
-        logger.error('Redis ping failed. Please run gimel configure')
+        logger.error('Redis ping failed. Please run lamed configure')
         return False
     return True
 

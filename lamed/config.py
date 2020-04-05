@@ -3,7 +3,7 @@ from os.path import expanduser, realpath
 import os
 import json
 try:
-    from gimel import logger
+    from lamed import logger
 except ImportError:
     import logger
 
@@ -24,7 +24,7 @@ def _load_config(config_filename):
 
 def load_config():
     config_filenames = (realpath('config.json'),
-                        expanduser('~/.gimel/config.json'))
+                        expanduser('~/.lamed/config.json'))
     for config_filename in config_filenames:
         name, content = _load_config(config_filename)
         if content:
@@ -43,12 +43,12 @@ def _create_file(config_filename):
 
 def _config_template():
     from pkg_resources import resource_filename as resource
-    return open(resource('gimel', 'config.json.template'), 'r').read()
+    return open(resource('lamed', 'config.json.template'), 'r').read()
 
 
 def generate_config(config_filename=None):
     if config_filename is None:
-        config_filename = expanduser('~/.gimel/config.json')
+        config_filename = expanduser('~/.lamed/config.json')
     _create_file(config_filename)
 
     with open(config_filename, 'w') as config_file:

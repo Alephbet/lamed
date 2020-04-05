@@ -15,20 +15,20 @@ requires = [
 ]
 
 setup(
-    name='gimel',
-    version=open(os.path.join('gimel', 'VERSION')).read().strip(),
+    name='lamed',
+    version=open(os.path.join('lamed', 'VERSION')).read().strip(),
     description='Run your own A/B testing backend on AWS Lambda',
     long_description=long_description,
     long_description_content_type='text/markdown',
     author='Yoav Aner',
     author_email='yoav@gingerlime.com',
-    url='https://github.com/Alephbet/gimel',
+    url='https://github.com/Alephbet/lamed',
     packages=find_packages(exclude=['tests*']),
     include_package_data=True,
     zip_safe=False,
     entry_points="""
         [console_scripts]
-        gimel=gimel.cli:cli
+        lamed=lamed.cli:cli
     """,
     install_requires=requires,
     classifiers=(

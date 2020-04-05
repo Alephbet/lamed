@@ -3,7 +3,7 @@ import sys
 sys.path.insert(0, './vendor')
 import redis
 try:
-    from gimel.config import config
+    from lamed.config import config
 except ImportError:
     from config import config
 
