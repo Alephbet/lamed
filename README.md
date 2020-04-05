@@ -20,8 +20,10 @@ Key Features:
 
 ## What does Lamed mean?
 
-Lamed (דמֵל) is the 12th letter of the Hebrew Alphabet. It sounds similar to the greek Lambda
-(λ).
+Lamed (לָמֶד) is the 12th letter of the Hebrew Alphabet. It sounds similar to the greek Lambda
+(λ) and pronounced La'med /ˈlamɛd/, rather than lame-d. And no, it's not lame :)
+
+Lamed (לָמֶד) is also the root of the hebrew verb "to learn", and was born out of a learning experience using Gimel.
 
 ## Installation / Quick Start
 
