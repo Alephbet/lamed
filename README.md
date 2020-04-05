@@ -33,6 +33,8 @@ $ lamed configure
 $ lamed deploy
 ```
 
+[![asciicast](https://asciinema.org/a/316780.svg)](https://asciinema.org/a/316780?speed=2)
+
 It will automatically configure your AWS Lambda functions, API gateway and produce a JS snippet ready to use
 for tracking your experiments.
 
