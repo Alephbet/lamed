@@ -7,11 +7,11 @@ with open('README.md') as f:
     long_description = f.read()
 
 requires = [
-    'awscli>=1.10.21',
-    'jmespath>=0.9.0',
-    'boto3>=1.3.0',
-    'click>=6.6',
-    'redis>=2.10.5'
+    'awscli>=1.18.36',
+    'jmespath>=0.9.5',
+    'boto3>=1.12.36',
+    'click>=7.1.1',
+    'redis>=3.4.1'
 ]
 
 setup(
