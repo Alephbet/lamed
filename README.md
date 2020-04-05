@@ -2,8 +2,6 @@
 
 [![PyPI](https://img.shields.io/pypi/v/lamed.svg)](https://pypi.python.org/pypi/lamed)
 
-[a Scaleable A/B testing backend in ~100 lines of code (and for free*)](http://blog.gingerlime.com/2016/a-scaleable-ab-testing-backend-in-100-lines-of-code-and-for-free/)
-
 ## What is it?
 
 an A/B testing backend using AWS Lambda/API Gateway + Redis.
