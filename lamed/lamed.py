@@ -7,6 +7,7 @@ try:
 except ImportError:
     from config import config
 
+UUID_EXPIRY = config.get('uuid_expiry_seconds', 24 * 60 * 60)
 
 def _redis():
     redis_config = config['redis']
@@ -31,9 +32,9 @@ def _results_dict(namespace, experiment):
     keys = r.smembers("{0}:{1}:counter_keys".format(namespace, experiment))
     pipe = r.pipeline()
     for key in keys:
-        pipe.pfcount(key)
+        pipe.get(key)
     values = pipe.execute()
-    return dict(zip(keys, values))
+    return dict(zip(keys, [int(value) for value in values]))
 
 
 def _experiment_goals(namespace, experiment):
@@ -55,6 +56,24 @@ def _experiment_goals(namespace, experiment):
                 'trials': trials})
         goal_results.append(goal_data)
     return goal_results
+
+
+def _add_unique(pipe, key, uuid):
+    while True:
+        try:
+            pipe.watch(uuid)
+            uuid_exists = pipe.get(uuid)
+            if uuid_exists is not None:
+                break
+            pipe.multi()
+            # setting a flag for the uuid with expiry time of UUID_EXPIRY
+            pipe.setex(uuid, UUID_EXPIRY, "1")
+            # incrementing counter for key
+            pipe.incr(key)
+            pipe.execute()
+            break
+        except redis.WatchError:
+            continue
 
 
 def experiment(event, context):
@@ -105,14 +124,14 @@ def track(event, context):
     tracking_event = event['event']
 
     r = _redis()
-    pipe = r.pipeline()
     key = '{0}:counters:{1}:{2}:{3}'.format(
         namespace, experiment, tracking_event, variant)
-    pipe.sadd('{0}:experiments'.format(namespace), experiment)
-    pipe.sadd('{0}:counter_keys'.format(namespace), key)
-    pipe.sadd('{0}:{1}:counter_keys'.format(namespace, experiment), key)
-    pipe.pfadd(key, uuid)
-    pipe.execute()
+    with r.pipeline() as pipe:
+        pipe.sadd('{0}:experiments'.format(namespace), experiment)
+        pipe.sadd('{0}:counter_keys'.format(namespace), key)
+        pipe.sadd('{0}:{1}:counter_keys'.format(namespace, experiment), key)
+        pipe.execute()
+        _add_unique(pipe, key, uuid)
 
 
 def delete(event, context):

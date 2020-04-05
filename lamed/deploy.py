@@ -84,7 +84,7 @@ WIRING = [
             "FunctionName": "lamed-track",
             "Handler": "lamed.track",
             "MemorySize": 128,
-            "Timeout": 3
+            "Timeout": 10
         },
         "api_gateway": {
             "pathPart": TRACK_ENDPOINT,

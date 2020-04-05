@@ -3,5 +3,6 @@
         "host": "ENTER YOUR REDIS HOST",
         "port": 6379,
         "password": "..."
-    }
+    },
+    "uuid_expiry_seconds": 86400
 }
