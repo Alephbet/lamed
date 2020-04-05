@@ -1,10 +1,10 @@
-import os
 import random
 import weakref
 
-from redis.client import StrictRedis
+from redis.client import Redis
 from redis.connection import ConnectionPool, Connection
-from redis.exceptions import ConnectionError, ResponseError, ReadOnlyError
+from redis.exceptions import (ConnectionError, ResponseError, ReadOnlyError,
+                              TimeoutError)
 from redis._compat import iteritems, nativestr, xrange
 
 
@@ -124,17 +124,6 @@ class SentinelConnectionPool(ConnectionPool):
             pass
         raise SlaveNotFoundError('No slave found for %r' % (self.service_name))
 
-    def _checkpid(self):
-        if self.pid != os.getpid():
-            self.disconnect()
-            self.reset()
-            self.__init__(self.service_name, self.sentinel_manager,
-                          is_master=self.is_master,
-                          check_connection=self.check_connection,
-                          connection_class=self.connection_class,
-                          max_connections=self.max_connections,
-                          **self.connection_kwargs)
-
 
 class Sentinel(object):
     """
@@ -170,13 +159,14 @@ class Sentinel(object):
         # if sentinel_kwargs isn't defined, use the socket_* options from
         # connection_kwargs
         if sentinel_kwargs is None:
-            sentinel_kwargs = dict([(k, v)
-                                    for k, v in iteritems(connection_kwargs)
-                                    if k.startswith('socket_')
-                                    ])
+            sentinel_kwargs = {
+                k: v
+                for k, v in iteritems(connection_kwargs)
+                if k.startswith('socket_')
+            }
         self.sentinel_kwargs = sentinel_kwargs
 
-        self.sentinels = [StrictRedis(hostname, port, **self.sentinel_kwargs)
+        self.sentinels = [Redis(hostname, port, **self.sentinel_kwargs)
                           for hostname, port in sentinels]
         self.min_other_sentinels = min_other_sentinels
         self.connection_kwargs = connection_kwargs
@@ -211,7 +201,7 @@ class Sentinel(object):
         for sentinel_no, sentinel in enumerate(self.sentinels):
             try:
                 masters = sentinel.sentinel_masters()
-            except ConnectionError:
+            except (ConnectionError, TimeoutError):
                 continue
             state = masters.get(service_name)
             if state and self.check_master_state(state, service_name):
@@ -235,14 +225,14 @@ class Sentinel(object):
         for sentinel in self.sentinels:
             try:
                 slaves = sentinel.sentinel_slaves(service_name)
-            except (ConnectionError, ResponseError):
+            except (ConnectionError, ResponseError, TimeoutError):
                 continue
             slaves = self.filter_slaves(slaves)
             if slaves:
                 return slaves
         return []
 
-    def master_for(self, service_name, redis_class=StrictRedis,
+    def master_for(self, service_name, redis_class=Redis,
                    connection_pool_class=SentinelConnectionPool, **kwargs):
         """
         Returns a redis client instance for the ``service_name`` master.
@@ -253,7 +243,7 @@ class Sentinel(object):
         NOTE: If the master's address has changed, any cached connections to
         the old master are closed.
 
-        By default clients will be a redis.StrictRedis instance. Specify a
+        By default clients will be a redis.Redis instance. Specify a
         different class to the ``redis_class`` argument if you desire
         something different.
 
@@ -270,7 +260,7 @@ class Sentinel(object):
         return redis_class(connection_pool=connection_pool_class(
             service_name, self, **connection_kwargs))
 
-    def slave_for(self, service_name, redis_class=StrictRedis,
+    def slave_for(self, service_name, redis_class=Redis,
                   connection_pool_class=SentinelConnectionPool, **kwargs):
         """
         Returns redis client instance for the ``service_name`` slave(s).
@@ -278,7 +268,7 @@ class Sentinel(object):
         A SentinelConnectionPool class is used to retrive the slave's
         address before establishing a new connection.
 
-        By default clients will be a redis.StrictRedis instance. Specify a
+        By default clients will be a redis.Redis instance. Specify a
         different class to the ``redis_class`` argument if you desire
         something different.
 
