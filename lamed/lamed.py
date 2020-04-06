@@ -34,7 +34,7 @@ def _results_dict(namespace, experiment):
     for key in keys:
         pipe.get(key)
     values = pipe.execute()
-    return dict(zip(keys, [int(value) for value in values]))
+    return dict(zip(keys, [int(value or 0) for value in values]))
 
 
 def _experiment_goals(namespace, experiment):
