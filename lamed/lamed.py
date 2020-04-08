@@ -1,11 +1,16 @@
 from __future__ import print_function
 import sys
+import hashlib
 sys.path.insert(0, './vendor')
 import redis
 try:
     from lamed.config import config
+    from lamed import logger
 except ImportError:
     from config import config
+    import logger
+
+logger = logger.setup()
 
 UUID_EXPIRY = config.get('uuid_expiry_seconds', 24 * 60 * 60)
 
@@ -59,11 +64,15 @@ def _experiment_goals(namespace, experiment):
 
 
 def _add_unique(pipe, key, uuid):
+    logger.info("adding {} to {}".format(uuid, key))
+    uuid = hashlib.sha1("{} {}".format(key, uuid).encode('utf-8')).hexdigest()
+    logger.info("sha1 uuid = {}".format(uuid))
     while True:
         try:
             pipe.watch(uuid)
             uuid_exists = pipe.get(uuid)
             if uuid_exists is not None:
+                logger.debug("{} exists".format(uuid))
                 break
             pipe.multi()
             # setting a flag for the uuid with expiry time of UUID_EXPIRY
@@ -71,8 +80,10 @@ def _add_unique(pipe, key, uuid):
             # incrementing counter for key
             pipe.incr(key)
             pipe.execute()
+            logger.info("added {} to {}".format(uuid, key))
             break
         except redis.WatchError:
+            logger.debug("watch error with {} {}".format(uuid, key))
             continue
 
 
