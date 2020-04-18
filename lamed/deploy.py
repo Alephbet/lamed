@@ -448,7 +448,7 @@ def js_code_snippet():
 
         experiment = new AlephBet.Experiment({
           name: "my a/b test",
-          tracking_adapter: new AlephBet.GimelAdapter(track_url, namespace),
+          tracking_adapter: new AlephBet.LamedAdapter(track_url, namespace),
           // trigger: function() { ... },  // optional trigger
           variants: {
             red: {
