@@ -15,7 +15,7 @@ pyasn1==0.1.9             # via rsa
 python-dateutil==2.5.3    # via botocore
 pyyaml==5.4             # via awscli
 redis==3.4.1              # via lamed (setup.py)
-rsa==4.1                  # via awscli
+rsa==4.7                  # via awscli
 s3transfer==0.3.3         # via awscli, boto3
 six==1.10.0               # via python-dateutil
 urllib3==1.25.8           # via botocore
