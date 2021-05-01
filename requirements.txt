@@ -4,18 +4,18 @@
 #
 #    pip-compile --output-file=requirements.txt setup.py
 #
-awscli==1.18.36           # via lamed (setup.py)
-boto3==1.12.36            # via lamed (setup.py)
-botocore==1.15.36         # via awscli, boto3, s3transfer
-click==7.1.1              # via lamed (setup.py)
-colorama==0.3.3           # via awscli
-docutils==0.12            # via awscli, botocore
-jmespath==0.9.5           # via boto3, botocore, lamed (setup.py)
-pyasn1==0.1.9             # via rsa
-python-dateutil==2.5.3    # via botocore
-pyyaml==5.4             # via awscli
-redis==3.4.1              # via lamed (setup.py)
-rsa==4.7                  # via awscli
-s3transfer==0.3.3         # via awscli, boto3
-six==1.10.0               # via python-dateutil
-urllib3==1.25.8           # via botocore
+awscli==1.19.62           # via lamed (setup.py)
+boto3==1.17.62            # via lamed (setup.py)
+botocore==1.20.62         # via awscli, boto3, s3transfer
+click==7.1.2              # via lamed (setup.py)
+colorama==0.4.3           # via awscli
+docutils==0.15.2          # via awscli
+jmespath==0.10.0          # via boto3, botocore, lamed (setup.py)
+pyasn1==0.4.8             # via rsa
+python-dateutil==2.8.1    # via botocore
+pyyaml==5.4.1             # via awscli
+redis==3.5.3              # via lamed (setup.py)
+rsa==4.7.2                # via awscli
+s3transfer==0.4.2         # via awscli, boto3
+six==1.15.0               # via python-dateutil
+urllib3==1.26.4           # via botocore
